@@ -1,11 +1,24 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useAuthStore } from "../stores/authStore";
+import { useRouter } from "vue-router";
 
 const email = ref("");
 const password = ref("");
+const errorMsg = ref("");
 
-const handleLogin = () => {
-  console.log("Logging in with:", email.value, password.value);
+const authStore = useAuthStore();
+const router = useRouter();
+
+const handleLogin = async () => {
+  errorMsg.value = "";
+  const result = await authStore.login(email.value, password.value);
+
+  if (result.success) {
+    router.push("/dashboard");
+  } else {
+    errorMsg.value = result.message as string;
+  }
 };
 </script>
 
@@ -39,11 +52,22 @@ const handleLogin = () => {
           />
         </div>
 
+        <p
+          v-if="errorMsg"
+          class="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg"
+        >
+          {{ errorMsg }}
+        </p>
+
         <button
           type="submit"
-          class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          :disabled="authStore.loading"
+          class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-blue-400"
         >
-          Sign in
+          <span v-if="authStore.loading" class="flex items-center gap-2">
+            Signing in...
+          </span>
+          <span v-else>Sign in</span>
         </button>
       </form>
     </div>
