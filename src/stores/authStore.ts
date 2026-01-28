@@ -33,5 +33,32 @@ export const useAuthStore = defineStore("auth", {
         this.loading = false;
       }
     },
+    async register(name: string, email: string, password: string) {
+      this.loading = true;
+      this.errorMessage = "";
+      try {
+        const res = await axios.post(
+          "http://localhost:5000/api/auth/register",
+          {
+            name,
+            email,
+            password,
+          },
+        );
+
+        this.token = res.data.token;
+        this.user = res.data.user;
+        localStorage.setItem("token", this.token as string);
+
+        return { success: true };
+      } catch (error: any) {
+        this.errorMessage =
+          error.response?.data?.message ||
+          "Registration failed, please try again later.";
+        return { success: false };
+      } finally {
+        this.loading = false;
+      }
+    },
   },
 });
