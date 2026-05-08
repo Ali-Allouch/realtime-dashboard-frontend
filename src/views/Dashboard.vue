@@ -5,6 +5,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useAuthStore } from "../stores/authStore";
 import socketService from "../services/socketService";
 import CPUChart from "../components/CPUChart.vue";
+import AlertToast from "../components/AlertToast.vue";
 
 const authStore = useAuthStore();
 const metrics = ref({ cpu: "0", freeMem: "0", totalMem: "0" });
@@ -22,6 +23,12 @@ const chartData = ref({
     },
   ],
 });
+
+const alerts = ref<any[]>([]);
+
+const handleCloseAlert = (id: number) => {
+  alerts.value = alerts.value.filter((a) => a.id !== id);
+};
 
 onMounted(() => {
   if (authStore.token) {
@@ -45,6 +52,11 @@ onMounted(() => {
           datasets: [{ ...chartData.value.datasets[0], data: newData }],
         };
       }
+    });
+
+    socketService.socket?.on("cpu_alert", (alert) => {
+      alerts.value.unshift(alert);
+      setTimeout(() => handleCloseAlert(alert.id), 5000);
     });
   }
 });
@@ -254,6 +266,8 @@ onUnmounted(() => {
           <CPUChart :chartData="chartData" />
         </div>
       </section>
+
+      <AlertToast :alerts="alerts" @close="handleCloseAlert" />
     </main>
 
     <Footer />
