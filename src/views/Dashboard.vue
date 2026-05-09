@@ -30,8 +30,11 @@ const handleCloseAlert = (id: number) => {
   alerts.value = alerts.value.filter((a) => a.id !== id);
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (authStore.token) {
+    if (!authStore.user) {
+      await authStore.fetchUser();
+    }
     socketService.connect(authStore.token);
 
     socketService.socket?.on("server_metrics", (data) => {

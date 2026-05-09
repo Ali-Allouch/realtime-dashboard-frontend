@@ -16,23 +16,32 @@ const handleLogout = () => {
   <nav
     class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm sticky top-0 z-50"
   >
-    <div class="flex items-center gap-2">
-      <div
-        class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"
-      >
-        <span class="text-white font-bold">R</span>
+    <router-link to="/dashboard">
+      <div class="flex items-center gap-2">
+        <div
+          class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"
+        >
+          <span class="text-white font-bold">R</span>
+        </div>
+        <span class="text-xl font-bold text-gray-800 tracking-tight"
+          >RealTime<span class="text-blue-600">Dash</span></span
+        >
       </div>
-      <span class="text-xl font-bold text-gray-800 tracking-tight"
-        >RealTime<span class="text-blue-600">Dash</span></span
-      >
-    </div>
+    </router-link>
 
     <div class="flex items-center gap-6">
       <div class="hidden sm:flex flex-col items-end">
-        <span class="text-sm font-semibold text-gray-700 leading-none">{{
-          authStore.user?.name || "User"
-        }}</span>
-        <span class="text-xs text-green-500 font-medium">● Online</span>
+        <router-link
+          to="/profile"
+          class="flex flex-col items-end cursor-pointer group"
+        >
+          <span class="text-sm font-semibold text-gray-700 leading-none">{{
+            authStore.user?.name || "User"
+          }}</span>
+          <span class="text-xs text-green-500 font-medium"
+            >● Online</span
+          ></router-link
+        >
       </div>
 
       <button

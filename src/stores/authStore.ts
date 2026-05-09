@@ -61,5 +61,40 @@ export const useAuthStore = defineStore("auth", {
         this.loading = false;
       }
     },
+    async fetchUser() {
+      if (!this.token) return;
+
+      try {
+        const response = await axios.get("http://localhost:5000/api/auth/me", {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+        this.user = response.data;
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    },
+    async updateProfile(newName: string) {
+      this.loading = true;
+      this.errorMessage = "";
+
+      try {
+        const response = await axios.put(
+          "http://localhost:5000/api/users/profile",
+          { name: newName },
+          {
+            headers: { Authorization: `Bearer ${this.token}` },
+          },
+        );
+
+        this.user = response.data.user;
+        return { success: true };
+      } catch (error: any) {
+        this.errorMessage =
+          error.response?.data?.message || "Failed to update profile";
+        return { success: false };
+      } finally {
+        this.loading = false;
+      }
+    },
   },
 });
