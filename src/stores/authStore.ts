@@ -96,5 +96,27 @@ export const useAuthStore = defineStore("auth", {
         this.loading = false;
       }
     },
+    async changePassword(passwords: {
+      currentPassword: string;
+      newPassword: string;
+    }) {
+      this.loading = true;
+      this.errorMessage = "";
+
+      try {
+        await axios.put(
+          "http://localhost:5000/api/users/change-password",
+          passwords,
+          { headers: { Authorization: `Bearer ${this.token}` } },
+        );
+        return { success: true };
+      } catch (error: any) {
+        this.errorMessage =
+          error.response?.data?.message || "Failed to update password";
+        return { success: false };
+      } finally {
+        this.loading = false;
+      }
+    },
   },
 });

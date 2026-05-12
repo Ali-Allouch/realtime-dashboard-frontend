@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import { useAuthStore } from "../stores/authStore";
 import Header from "../components/Layout/Header.vue";
 import Footer from "../components/Layout/Footer.vue";
@@ -7,6 +7,13 @@ import Footer from "../components/Layout/Footer.vue";
 const authStore = useAuthStore();
 const isEditing = ref(false);
 const newName = ref(authStore.user?.name || "");
+const showPasswordForm = ref(false);
+const passwordData = reactive({
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
+const successMsg = ref("");
 
 const handleSave = async () => {
   if (newName.value.trim() === "") return;
@@ -21,6 +28,28 @@ const handleSave = async () => {
 const handleCancel = () => {
   newName.value = authStore.user?.name || "";
   isEditing.value = false;
+};
+
+const handleChangePassword = async () => {
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    authStore.errorMessage = "New passwords do not match!";
+    return;
+  }
+
+  const result = await authStore.changePassword({
+    currentPassword: passwordData.currentPassword,
+    newPassword: passwordData.newPassword,
+  });
+
+  if (result.success) {
+    successMsg.value = "Password updated successfully!";
+    showPasswordForm.value = false;
+    passwordData.currentPassword =
+      passwordData.newPassword =
+      passwordData.confirmPassword =
+        "";
+    setTimeout(() => (successMsg.value = ""), 3000);
+  }
 };
 </script>
 
@@ -97,7 +126,7 @@ const handleCancel = () => {
             <button
               v-if="!isEditing"
               @click="isEditing = true"
-              class="bg-slate-900 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors"
+              class="bg-slate-900 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors cursor-pointer"
             >
               Edit Profile
             </button>
@@ -123,6 +152,74 @@ const handleCancel = () => {
           </div>
         </div>
       </div>
+
+      <section
+        class="mt-8 bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden"
+      >
+        <div class="p-10">
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h3 class="text-xl font-black text-slate-900 tracking-tight">
+                Security
+              </h3>
+              <p class="text-slate-500 text-sm font-medium">
+                Manage your password and account access.
+              </p>
+            </div>
+            <button
+              @click="showPasswordForm = !showPasswordForm"
+              class="text-blue-600 font-bold text-sm hover:underline cursor-pointer"
+            >
+              {{ showPasswordForm ? "Cancel" : "Change Password" }}
+            </button>
+          </div>
+
+          <p
+            v-if="successMsg"
+            class="mb-4 p-3 bg-green-50 text-green-700 rounded-xl text-sm font-bold border border-green-100"
+          >
+            {{ successMsg }}
+          </p>
+
+          <div
+            v-if="showPasswordForm"
+            class="space-y-4 max-w-md animate-fade-in"
+          >
+            <input
+              v-model="passwordData.currentPassword"
+              type="password"
+              placeholder="Current Password"
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 outline-none transition-all"
+            />
+            <input
+              v-model="passwordData.newPassword"
+              type="password"
+              placeholder="New Password"
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 outline-none transition-all"
+            />
+            <input
+              v-model="passwordData.confirmPassword"
+              type="password"
+              placeholder="Confirm New Password"
+              class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 outline-none transition-all"
+            />
+
+            <button
+              @click="handleChangePassword"
+              class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-all disabled:opacity-50 cursor-pointer"
+              :disabled="authStore.loading"
+            >
+              {{ authStore.loading ? "Updating..." : "Update Password" }}
+            </button>
+            <p
+              v-if="authStore.errorMessage"
+              class="text-red-500 text-xs font-bold"
+            >
+              {{ authStore.errorMessage }}
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
 
     <Footer />
